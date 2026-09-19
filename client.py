@@ -5,6 +5,7 @@ import random
 
 SERVER_IP = input("Enter Host IP (e.g., 192.168.1.5 or 127.0.0.1): ") 
 PORT = 5555
+ROLES = ["Commoner", "Mafia Henchmen", "Betrayer", ""]
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

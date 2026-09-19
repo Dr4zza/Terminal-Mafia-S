@@ -23,20 +23,38 @@ print("=== Game Server Started ===")
 print(f"Players on the LAN/Hotspot connect to: {lan_ip}")
 print(f"Waiting for players to join on port {PORT}...\n")
 
+clients = []
+
+def broadcast(message, sender_conn=None):
+    for client in clients:
+        if client != sender_conn:
+            try:
+                client.send(message.encode('utf-8'))
+            except:
+                clients.remove(client)
+
 def handle_client(conn, addr):
     print(f"[JOIN] Player connected from {addr}")
+    clients.append(conn)
+    broadcast(f"A new player joined from {addr[0]}!", conn)
     try:
         while True:
             data = conn.recv(1024).decode('utf-8')
+            
             if not data:
                 break
             print(data)
+            broadcast(data, conn)
             playername = data.split(":", 1)[0]
 
             
     except ConnectionResetError:
-        print(f"[LEAVE] {playername} disconnected.")
+        pass
     finally:
+        print(f"[LEAVE] Player {playername} disconnected.")
+        if conn in clients:
+            clients.remove(conn)
+            broadcast(f"Player {playername} has left the game.", conn)
         conn.close()
 
 while True:
