@@ -21,3 +21,6 @@ class player():
             
             new_player = SinglePlayer(conn, addr, assigned_role)
             self.player_list.append(new_player)
+
+    def daycycle(self):
+        pass

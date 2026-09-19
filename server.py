@@ -34,6 +34,15 @@ def broadcast(message, sender_conn=None):
             except:
                 clients.remove(client)
 
+def broadcast_maf(message, sender_conn=None):
+    if 'game_manager' in globals():
+        for p in game_manager.player_list:
+            if p.role == 'Mafia' and p.conn != sender_conn:
+                try:
+                    p.conn.send(message.encode('utf-8'))
+                except Exception:
+                    pass
+
 def handle_client(conn, addr):
     playername = str(addr[1])
     print(f"[JOIN] Player connected from {addr}")
