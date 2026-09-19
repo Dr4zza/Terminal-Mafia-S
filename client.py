@@ -3,9 +3,8 @@ import threading
 import sys
 import random
 
-SERVER_IP = input("Enter Host IP (e.g., 192.168.1.5 or 127.0.0.1): ") 
+SERVER_IP = input("Enter Host IP (e.g., 192.168.1.5 or 127.0.0.1): ")
 PORT = 5555
-ROLES = ["Commoner", "Mafia Henchmen", "Betrayer", ""]
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -17,6 +16,7 @@ except Exception as e:
     print(f"Could not connect: {e}")
     sys.exit()
 
+
 def receive_messages():
     while True:
         try:
@@ -25,13 +25,14 @@ def receive_messages():
                 print("\n[Disconnected from server]")
                 client.close()
                 sys.exit()
-            
+
             print(f"\n{message}")
-            
+
         except Exception:
             print("\n[Connection lost]")
             client.close()
             sys.exit()
+
 
 receive_thread = threading.Thread(target=receive_messages)
 receive_thread.daemon = True
@@ -39,8 +40,8 @@ receive_thread.start()
 
 while True:
     try:
-        action = input() 
-        
+        action = input()
+
         if action.lower() == 'quit':
             client.close()
             break
@@ -48,7 +49,6 @@ while True:
         send = f"{playername}: {action}"
         client.send(send.encode('utf-8'))
 
-        
     except KeyboardInterrupt:
         print("\nExiting game...")
         client.close()
