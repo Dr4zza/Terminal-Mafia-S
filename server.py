@@ -1,5 +1,6 @@
 import socket
 import threading
+from main import player, SinglePlayer
 
 def get_local_ip():
     try:
@@ -57,7 +58,19 @@ def handle_client(conn, addr):
             broadcast(f"{playername} has left the game.", conn)
         conn.close()
 
-while True:
-    conn, addr = server.accept()
-    thread = threading.Thread(target=handle_client, args=(conn, addr))
+EXPECTED_PLAYERS = 4
+
+print(f"Waiting for {EXPECTED_PLAYERS} players to join...")
+
+while len(clients) < EXPECTED_PLAYERS:
+    conn, addr = server.accept() #
+    thread = threading.Thread(target=handle_client, args=(conn, addr)) #
     thread.start()
+
+print("Lobby full. Assigning roles...")
+broadcast("\n--- LOBBY FULL. GAME STARTING ---")
+game_manager = player(clients)
+
+for p in game_manager.player_list:
+    role_message = f"\nSERVER: Your secret role is {p.role}!"
+    p.conn.send(role_message.encode('utf-8'))
