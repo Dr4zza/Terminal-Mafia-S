@@ -35,17 +35,27 @@ def broadcast(message, sender_conn=None):
                 clients.remove(client)
 
 def handle_client(conn, addr):
+    playername = str(addr[1])
     print(f"[JOIN] Player connected from {addr}")
     broadcast(f"A new player joined from {addr[0]}!", conn)
     try:
         while True:
             data = conn.recv(1024).decode('utf-8')
-            
+            playername = data.split(":", 1)[0] if ":" in data else str(addr[1])
             if not data:
                 break
+            
+            if "VOTE:" in data:
+                target = data.split("VOTE:")[1].strip()
+                
+                if playername == "VOTE":
+                    playername = str(addr[1])
+                    
+                broadcast(f'{playername} voted for {target}', conn)
+            else:
+                broadcast(data, conn)
+                
             print(data)
-            broadcast(data, conn)
-            playername = data.split(":", 1)[0]
 
             
     except ConnectionResetError:

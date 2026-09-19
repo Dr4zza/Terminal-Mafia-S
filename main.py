@@ -1,10 +1,11 @@
 import random
 
 class SinglePlayer:
-    def __init__(self, conn, addr, role):
+    def __init__(self, conn, addr, role, name):
         self.conn = conn
         self.addr = addr
         self.role = role
+        self.name = name
 
 class player():
     def __init__(self, players):
