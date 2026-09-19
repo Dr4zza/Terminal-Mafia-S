@@ -2,7 +2,7 @@ import random
 
 
 class SinglePlayer:
-    def __init__(self, conn, addr, role, name):
+    def __init__(self, conn, addr, role):
         self.conn = conn
         self.addr = addr
         self.role = role
@@ -24,3 +24,6 @@ class player():
 
             new_player = SinglePlayer(conn, addr, assigned_role)
             self.player_list.append(new_player)
+
+    def daycycle(self):
+        pass
