@@ -1,6 +1,10 @@
 import socket
 import threading
 from main import player, SinglePlayer
+from phase_manager import Phase_manager
+import phase_manager
+import time
+from villager_questions import start_question_round
 
 
 def get_local_ip():
@@ -49,6 +53,11 @@ def handle_client(conn, addr):
             if not data:
                 break
 
+            player = get_player_by_connection(conn)
+            if player is not None and not player.alive:
+                print(f"[IGNORED] Eliminated player tried to send: {data}")
+                continue
+
             if "VOTE:" in data:
                 target = data.split("VOTE:")[1].strip()
 
@@ -65,10 +74,21 @@ def handle_client(conn, addr):
         pass
     finally:
         print(f"[LEAVE] {playername} disconnected.")
+
         if conn in clients:
             clients.remove(conn)
             broadcast(f"{playername} has left the game.", conn)
+
         conn.close()
+
+
+def get_player_by_connection(conn):
+
+    for p in game_manager.player_list:
+        if p.conn == conn:
+            return p
+
+    return None
 
 
 EXPECTED_PLAYERS = 4
@@ -88,3 +108,27 @@ game_manager = player(clients)
 for p in game_manager.player_list:
     role_message = f"\nSERVER: Your secret role is {p.role}!"
     p.conn.send(role_message.encode('utf-8'))
+
+pm = Phase_manager(broadcast)
+
+
+def game_loop():
+    pm.set_day()  # day no 1
+    time.sleep(30)  # shuttin stuff off for 30s
+    pm.set_night()  # night no 1
+    # remaining stuff to be coded after keshav's logic
+
+
+game_thread = threading.Thread(target=game_loop, daemon=True)
+game_thread.start()
+
+
+def night_time():
+    phase_manager.set_night()
+    broadcast("mafia discussion..")
+    broadcast("\n 30s remaining")
+    time.sleep(30)
+
+    broadcast("\n======ACTION TIME======")
+    start_question_round(broadcast)
+    time.sleep(20)

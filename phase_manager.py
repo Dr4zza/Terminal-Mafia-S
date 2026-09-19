@@ -12,5 +12,5 @@ class Phase_manager:
         self.set_phase("DAY")
     # to make it night
 
-    def set_day(self):
+    def set_night(self):
         self.set_phase('NIGHT')
