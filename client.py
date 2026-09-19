@@ -2,6 +2,7 @@ import socket
 import threading
 import sys
 import random
+from ascii_art import show_phase
 
 SERVER_IP = input("Enter Host IP (e.g., 192.168.1.5 or 127.0.0.1): ")
 PORT = 5555
@@ -25,9 +26,12 @@ def receive_messages():
                 print("\n[Disconnected from server]")
                 client.close()
                 sys.exit()
-
-            print(f"\n{message}")
-
+            if message == "phase is day":
+                show_phase("DAY")
+            elif message == "phase is night":
+                show_phase("NIGHT")
+            else:
+                print(f"\n{message}")
         except Exception:
             print("\n[Connection lost]")
             client.close()
