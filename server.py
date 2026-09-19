@@ -45,7 +45,7 @@ def handle_client(conn, addr):
     try:
         while True:
             data = conn.recv(1024).decode('utf-8')
-            playername = data.split(":", 1)[0] if ":" in data else str(addr[1])
+            playername = data.split(":", 1)[0]
             if not data:
                 break
 
