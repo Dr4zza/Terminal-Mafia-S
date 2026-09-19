@@ -60,6 +60,7 @@ def handle_client(conn, addr):
                 broadcast(f'{playername} voted for {target}', conn)
             else:
                 broadcast(data, conn)
+                broadcast_maf(data, conn)
                 
             print(data)
 
