@@ -51,10 +51,10 @@ def handle_client(conn, addr):
     except ConnectionResetError:
         pass
     finally:
-        print(f"[LEAVE] Player {playername} disconnected.")
+        print(f"[LEAVE] {playername} disconnected.")
         if conn in clients:
             clients.remove(conn)
-            broadcast(f"Player {playername} has left the game.", conn)
+            broadcast(f"{playername} has left the game.", conn)
         conn.close()
 
 while True:
