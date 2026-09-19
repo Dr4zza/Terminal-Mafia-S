@@ -102,6 +102,7 @@ def get_player_by_connection(conn):
 
 EXPECTED_PLAYERS = 4
 
+
 print(f"Waiting for {EXPECTED_PLAYERS} players to join...")
 
 while len(clients) < EXPECTED_PLAYERS:
@@ -134,7 +135,7 @@ game_thread.start()
 
 def night_time():
     phase_manager.set_night()
-    broadcast("mafia discussion..")
+    broadcast("Mafia Discussion..")
     broadcast("\n 30s remaining")
     time.sleep(30)
 
