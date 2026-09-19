@@ -36,7 +36,6 @@ def broadcast(message, sender_conn=None):
 
 def handle_client(conn, addr):
     print(f"[JOIN] Player connected from {addr}")
-    clients.append(conn)
     broadcast(f"A new player joined from {addr[0]}!", conn)
     try:
         while True:
@@ -63,7 +62,8 @@ EXPECTED_PLAYERS = 4
 print(f"Waiting for {EXPECTED_PLAYERS} players to join...")
 
 while len(clients) < EXPECTED_PLAYERS:
-    conn, addr = server.accept() #
+    conn, addr = server.accept()
+    clients.append(conn)
     thread = threading.Thread(target=handle_client, args=(conn, addr)) #
     thread.start()
 
