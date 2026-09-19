@@ -41,15 +41,12 @@ def handle_client(conn, addr):
     try:
         while True:
             data = conn.recv(1024).decode('utf-8')
-            playername = data.split(":", 1)[0] if ":" in data else str(addr[1])
+            playername = data.split(":", 1)[0]
             if not data:
                 break
             
             if "VOTE:" in data:
                 target = data.split("VOTE:")[1].strip()
-                
-                if playername == "VOTE":
-                    playername = str(addr[1])
                     
                 broadcast(f'{playername} voted for {target}', conn)
             else:
