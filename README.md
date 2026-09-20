@@ -1,7 +1,4 @@
 # Terminal-Mafia-S
-An among us like game all in the terminal. Made for IAC Root 36 hackathon.
-
-## Terminal-Mafia-S
 
 An "Among Us" style social deduction game built entirely in the terminal! Created for the IAC Root 36 Hackathon, this project brings the classic party game of Mafia/Werewolf to your command line using Python socket networking.
 
