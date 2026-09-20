@@ -372,7 +372,7 @@ while True:
                     broadcast(VILLAGER_WIN_ART)
                 elif night_result["win_status"] == "MAFIA_WIN":
                     broadcast(MAFIA_WIN_ART)
-                broadcast(f"\nGAME OVER: {night_result['win_status']}")
+                broadcast(f"\nGAME OVER: {night_result['win_status']}\n")
                 broadcast("Waiting for Host to restart the game...")
                 break
 

@@ -3,7 +3,6 @@ import threading
 import sys
 import random
 from ascii_art import show_phase
-import os
 
 PLAYER_NAME = input("Enter the name you want to use: ")
 PORT = 5555
