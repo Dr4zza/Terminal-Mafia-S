@@ -3,7 +3,9 @@ import threading
 import sys
 import random
 from ascii_art import show_phase
+from main import SinglePlayer
 
+PLAYER_NAME = input("Enter the name you want to use: ")
 SERVER_IP = input("Enter Host IP (e.g., 192.168.1.5 or 127.0.0.1): ")
 PORT = 5555
 
@@ -12,7 +14,9 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     client.connect((SERVER_IP, PORT))
     print("Connected to the game! (Type 'quit' to exit)")
-    playername = f"Player {random.choice([i for i in range(0,30)])}"
+    
+    client.send(f"{PLAYER_NAME}: has connected".encode('utf-8'))
+    
 except Exception as e:
     print(f"Could not connect: {e}")
     sys.exit()
@@ -26,12 +30,15 @@ def receive_messages():
                 print("\n[Disconnected from server]")
                 client.close()
                 sys.exit()
-            if message == "phase is day":
+                
+            # 1. Use 'in' instead of '==' to catch merged packets
+            if "phase is day" in message.lower():
                 show_phase("DAY")
-            elif message == "phase is night":
+            if "phase is night" in message.lower():
                 show_phase("NIGHT")
-            else:
-                print(f"\n{message}")
+                
+            # 2. Always print the message so you don't lose the game text
+            print(f"\n{message}")
         except Exception:
             print("\n[Connection lost]")
             client.close()
@@ -50,7 +57,7 @@ while True:
             client.close()
             break
 
-        send = f"{playername}: {action}"
+        send = f"{PLAYER_NAME}: {action}"
         client.send(send.encode('utf-8'))
 
     except KeyboardInterrupt:

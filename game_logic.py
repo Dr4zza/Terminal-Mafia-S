@@ -52,21 +52,7 @@ def build_role_pool(num_players, include_doctor=True, include_detective=True):
     Mafia count = num_players // 3 (minimum 1), per the team split ("total
     player count divided by 3"). One Doctor and one Detective are set aside
     next (if there's room and the flags are True), everyone else defaults
-    to Villager/crewmate.
-
-    Integration note for Z (main.py):
-        Replace the hardcoded line in `player.__init__`:
-            role_pool = ['Mafia'] + ['Doctor'] + ['Villager'] * (len(players) - 2)
-            random.shuffle(role_pool)
-        with:
-            from game_logic import build_role_pool
-            role_pool = build_role_pool(len(players))
-        (build_role_pool already returns it shuffled, so the separate
-        random.shuffle call can be deleted).
-
-        NOTE: main.py currently has no "Detective" role anywhere, so
-        detective_check() below will never actually fire until this swap
-        happens on your end.
+    to Villager.
     """
     if num_players < 4:
         raise ValueError("Need at least 4 players to assign roles")
