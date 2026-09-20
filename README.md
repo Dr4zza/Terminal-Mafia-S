@@ -1,17 +1,17 @@
 # Terminal-Mafia-S
 An among us like game all in the terminal. Made for IAC Root 36 hackathon.
 
-🕵️‍♂️ Terminal-Mafia-S
+Terminal-Mafia-S
 
 An "Among Us" style social deduction game built entirely in the terminal! Created for the IAC Root 36 Hackathon, this project brings the classic party game of Mafia/Werewolf to your command line using Python socket networking.
 
-🌟 Overview
+Overview
 
-Terminal-Mafia-S is a multiplayer LAN game where players connect to a central host and are secretly assigned roles. Through alternating Day and Night phases, players must use their wits, deception, and deduction to survive.
+Terminal-Mafia-S is a multiplayer LAN game where players who are connected to a central host and are secretly assigned roles. Through alternating Day and Night phases, players must use their wits, deception, and deduction to survive.
 
 The game features live chat, real-time voting, hidden night actions, and immersive ASCII art to bring the terminal experience to life.
 
-🚀 Features
+Features
 
 Multiplayer LAN Architecture: Built with Python socket and threading, supporting 4+ players over a local network.
 
@@ -19,9 +19,9 @@ Dynamic Role Assignment: Roles automatically scale based on the lobby size (Mafi
 
 Phased Gameplay:
 
-☀️ Day Phase: Open chat for all living players to discuss suspicions, followed by a public voting round to lynch a suspect.
+Day Phase: Open chat for all living players to discuss suspicions, followed by a public voting round to lynch a suspect.
 
-🌙 Night Phase:
+Night Phase:
 
 Mafia: Secret chat to coordinate and vote on a victim.
 
@@ -35,7 +35,7 @@ Spectator/Ghost Mode: Eliminated players receive a custom "R.I.P. Skill Issue" g
 
 Immersive ASCII Art: Custom UI elements for dawning days, falling nights, detective dossiers, and mafia hits.
 
-🎭 The Roles
+The Roles
 
 🔪 Mafia: Work together in secret during the night to eliminate the town. If they equal or outnumber the town, they win!
 
@@ -45,7 +45,7 @@ Immersive ASCII Art: Custom UI elements for dawning days, falling nights, detect
 
 🧑‍🌾 Villager: The uninformed majority. They must use logic, day-time chat, and voting to root out the impostors.
 
-💻 How to Play
+How to Play
 
 Prerequisites
 
@@ -74,13 +74,13 @@ Enter your username and the host's IP address when prompted.
 Start the Match:
 Once 4 or more players are in the lobby, the host presses [ENTER] on the server terminal to assign roles and begin the game!
 
-🗳️ Commands
+Commands
 
 Chat: Simply type and press enter to send messages (during the Day, or in the Mafia chat at Night).
 
 Vote/Action: Type VOTE: [playername] during the designated time limits to lock in your lynch, kill, heal, or investigate target.
 
-🔮 Future Roadmap & Brainstorming
+Future Roadmap & Brainstorming
 
 Based on our brainstorming sessions, here are ideas planned for future updates:
 
