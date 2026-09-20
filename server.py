@@ -22,6 +22,9 @@ def get_local_ip():
 HOST = '0.0.0.0'
 PORT = 5555
 game_start = False
+global voting_status
+voting_status = False
+
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((HOST, PORT))
@@ -51,6 +54,11 @@ def broadcast_maf(message, sender_conn=None):
     if 'game_manager' in globals():
         for p in game_manager.player_list:
             if p.role == 'Mafia' and p.conn != sender_conn:
+                try:
+                    p.conn.send(message.encode('utf-8'))
+                except Exception:
+                    pass
+            elif p.alive == False:
                 try:
                     p.conn.send(message.encode('utf-8'))
                 except Exception:
@@ -85,11 +93,15 @@ def handle_client(conn, addr):
             playername = data.split(":", 1)[0]
 
             player = get_player_by_connection(conn)
+
+            if data.split(':',1)[-1].strip().lower() == "quit":
+                break
+
             if player is not None and not player.alive:
                 player.conn.send("GHOSTS CANNOT INTERACT.".encode('utf-8'))
                 continue
 
-            if not game_start:
+            if not game_start or voting_status==False:
                 if "VOTE:" in data:
                     conn.send("SERVER: You cannot vote until the game starts.\n".encode('utf-8'))
                 else:
@@ -125,6 +137,8 @@ def handle_client(conn, addr):
                         elif player.role == "Detective":
                             detective_votes[playername] = actual_target
                             conn.send(f"SERVER: You chose to investigate {actual_target}. Results will arrive in the morning.\n".encode('utf-8'))
+                        elif player.role == "Villager":
+                            conn.send("\nYou aren't allowed to vote.\n".encode('utf-8'))
                 else:
                     conn.send(f"SERVER: Invalid target '{target_input}'. They might already be dead.\n".encode('utf-8'))
             else:
@@ -202,6 +216,7 @@ accept_thread.start()
 
 while True:
     game_start = False
+    voting_status = False
     print("\n--- LOBBY OPEN ---")
     print("Players can now join. Press [ENTER] to start the game (requires 4+ players)...")
 
@@ -244,10 +259,12 @@ while True:
     pm = Phase_manager(broadcast)
 
     def game_loop():
+        global voting_status
         while True:
             # --- DAY PHASE ---
             pm.set_day() 
             day_votes.clear()
+            voting_status = True
 
             living_players = [p.name for p in game_manager.player_list if p.alive]
             living_str = ", ".join(living_players)
@@ -257,6 +274,7 @@ while True:
             time.sleep(60)
             
             # Day Resolution
+            voting_status = False
             broadcast("\n--- LYNCHING RESOLUTION ---")
             day_result = resolve_day_vote(game_manager.player_list, day_votes)
             if day_result["eliminated"]:
@@ -276,7 +294,8 @@ while True:
             mafia_votes.clear()
             doctor_votes.clear()
             detective_votes.clear()
-            
+
+            voting_status = True
             living_players = [p.name for p in game_manager.player_list if p.alive]
             living_str = ", ".join(living_players)
             broadcast_maf(f"\n--- MAFIA MEET ---")

@@ -124,6 +124,7 @@ def resolve_night_phase(player_list, mafia_votes, heal_target_name, detective_ta
         "saved": saved,
         "detective_result": detective_result,
         "win_status": check_win_condition(player_list),
+        "elimnated_role": find_player_by_name(player_list, eliminated).role
     }
 
 
