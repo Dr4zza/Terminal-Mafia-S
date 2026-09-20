@@ -74,4 +74,4 @@ Commands
 
 - Vote/Action: Type VOTE: [playername] during the designated time limits to lock in your lynch, kill, heal, or investigate target.
 
-Built with Python, Sockets, and Deception for IAC Root 36.
+*Built with Python, Sockets, and Deception for IAC Root 36.*
