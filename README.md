@@ -63,7 +63,7 @@ One player must run the server executable.
 The server will display a local IP address (e.g., 192.168.x.x). Share this IP with the other players.
 
 Connect to the Game (Clients):
-All players (including the host, in a separate executable) must run the client script.
+All players (including the host, in a separate executable) must run the client executable.
 
 > TerminalMafiaClient.exe
 
