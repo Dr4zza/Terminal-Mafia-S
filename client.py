@@ -3,24 +3,27 @@ import threading
 import sys
 import random
 from ascii_art import show_phase
-from main import SinglePlayer
+import os
 
 PLAYER_NAME = input("Enter the name you want to use: ")
-SERVER_IP = input("Enter Host IP (e.g., 192.168.1.5 or 127.0.0.1): ")
 PORT = 5555
 
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-try:
-    client.connect((SERVER_IP, PORT))
-    print("Connected to the game! (Type 'quit' to exit)")
+while True:
+    SERVER_IP = input("Enter Host IP (e.g., 192.168.1.5 or 127.0.0.1): ")
+    print(f"Connecting to {SERVER_IP}")
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
-    client.send(f"{PLAYER_NAME}: has connected".encode('utf-8'))
-    
-except Exception as e:
-    print(f"Could not connect: {e}")
-    sys.exit()
+    try:
+        client.connect((SERVER_IP, PORT))
+        print("Connected to the game! (Type 'quit' to exit)")
 
+        client.send(f"{PLAYER_NAME}: has connected".encode('utf-8'))
+        
+        break 
+        
+    except Exception as e:
+        print(f"\n[ERROR] Could not connect to {SERVER_IP}.")
+        print("Check if the host started the server and if the IP is correct.\n")
 
 def receive_messages():
     while True:

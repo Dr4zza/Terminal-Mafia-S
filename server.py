@@ -70,6 +70,10 @@ def handle_client(conn, addr):
     client_names[conn] = playername
     print(f"[JOIN] Player connected from {addr}")
     broadcast(f"A new player joined from {playername}!", conn)
+
+    lobby_players = list(client_names.values())
+    lobby_str = ", ".join(lobby_players)
+    broadcast(f"Current Lobby ({len(lobby_players)}/4+): {lobby_str}\n")
     try:
         while True:
             data = conn.recv(1024).decode('utf-8')
@@ -83,6 +87,13 @@ def handle_client(conn, addr):
                 player.conn.send("GHOSTS CANNOT INTERACT.".encode('utf-8'))
                 continue
 
+            if not game_start:
+                if "VOTE:" in data:
+                    conn.send("SERVER: You cannot vote until the game starts.\n".encode('utf-8'))
+                else:
+                    broadcast(data, conn)  # Broadcast to everyone in the lobby
+                continue
+            
             if "VOTE:" in data:
                 target_input = data.split("VOTE:")[1].strip()
                 
@@ -94,11 +105,9 @@ def handle_client(conn, addr):
                             actual_target = p.name
                             break
                 
-                # --- NEW: Check for self-voting explicitly ---
                 if actual_target == playername:
                     conn.send("SERVER: You cannot vote for yourself!\n".encode('utf-8'))
                     
-                # Check phase and validate target
                 elif is_valid_vote_target(game_manager.player_list, playername, actual_target):
                     if pm.phase == "DAY":
                         day_votes[playername] = actual_target
@@ -129,8 +138,17 @@ def handle_client(conn, addr):
 
         if conn in clients:
             clients.remove(conn)
-            broadcast(f"{playername} has left the game.", conn)
-
+        if conn in client_names:
+            del client_names[conn]
+            
+        broadcast(f"\n{playername} has left the game.", conn)
+        
+        # --- NEW: Show the updated lobby if someone leaves before the game starts ---
+        if not game_start:
+            lobby_players = list(client_names.values())
+            if lobby_players:
+                broadcast(f"Current Lobby ({len(lobby_players)}/4+): {', '.join(lobby_players)}\n")
+                
         conn.close()
 
 
@@ -155,134 +173,149 @@ def notify_eliminated_player(victim_name):
 game_start = False
 
 def accept_connections():
-    while not game_start:
+    while True:
         try:
             conn, addr = server.accept()
-            clients.append(conn)
-            thread = threading.Thread(target=handle_client, args=(conn, addr))
-            thread.start()
+            if game_start:
+                try:
+                    conn.send("\n[SERVER] Sorry, a game is already in progress! Cannot join.\n".encode('utf-8'))
+                except:
+                    pass
+                conn.close()
+            else:
+                clients.append(conn)
+                thread = threading.Thread(target=handle_client, args=(conn, addr))
+                thread.start()
         except Exception:
             break
 
 accept_thread = threading.Thread(target=accept_connections, daemon=True)
 accept_thread.start()
 
-print("Server is open! Players can now join.")
-print("Press [ENTER] on this server console at any time to start the game (requires 4+ players)...")
 
-# 2. Main thread waits for the host to manually trigger the start
 while True:
-    input() # Pauses the terminal here until the host hits Enter
-    
-    # Ensure at least 4 players are fully registered before allowing the start
-    if len(clients) >= 4 and len(client_names) == len(clients):
-        game_start = True
-        break
-    elif len(clients) < 4:
-        print(f"Cannot start yet. Only {len(clients)} players have joined. Need at least 4.")
-    elif len(client_names) < len(clients):
-        print("A player is still registering their name. Please wait a second and press [ENTER] again.")
+    game_start = False
+    print("\n--- LOBBY OPEN ---")
+    print("Players can now join. Press [ENTER] to start the game (requires 4+ players)...")
 
-print(f"\nStarting game with {len(clients)} players! Assigning roles...")
-broadcast("\n--- HOST HAS STARTED THE GAME ---")
-
-# 3. Create the game manager with everyone who joined before the host pressed Enter
-game_manager = player(clients, client_names)
-
-for p in game_manager.player_list:
-    role_message = f"\nSERVER: Your secret role is {p.role}! Game starting in 10 seconds."
-    p.conn.send(role_message.encode('utf-8'))
-
-time.sleep(10)
-
-pm = Phase_manager(broadcast)
-
-
-def game_loop():
+    # Wait for the host to manually trigger the start
     while True:
-        # --- DAY PHASE ---
-        pm.set_day() 
-        day_votes.clear()
-
-        living_players = [p.name for p in game_manager.player_list if p.alive]
-        living_str = ", ".join(living_players)
-
-        broadcast("\nDiscuss who the Mafia is. Type 'VOTE: [name]' to lynch. You have 60 seconds")
-        broadcast(f"\nAlive players {living_str}")
-        time.sleep(60)
-        
-        # Day Resolution
-        broadcast("\n--- LYNCHING RESOLUTION ---")
-        day_result = resolve_day_vote(game_manager.player_list, day_votes)
-        if day_result["eliminated"]:
-            broadcast(f"{day_result['eliminated']} was lynched by the town.")
-            notify_eliminated_player(day_result["eliminated"])
-        else:
-            broadcast("No majority reached. Nobody was lynched.")
-        
-        if day_result["win_status"]:
-            broadcast(f"\nGAME OVER: {day_result['win_status']}")
+        input() 
+        if len(clients) >= 4 and len(client_names) == len(clients):
+            game_start = True
             break
+        elif len(clients) < 4:
+            print(f"Cannot start yet. Only {len(clients)} players have joined. Need at least 4.")
+        elif len(client_names) < len(clients):
+            print("A player is still registering their name. Please wait a second and press [ENTER] again.")
 
-        time.sleep(0.5)
-        # --- NIGHT PHASE ---
-        pm.set_night()
-        mafia_votes.clear()
-        doctor_votes.clear()
-        living_players = [p.name for p in game_manager.player_list if p.alive]
-        living_str = ", ".join(living_players)
+    print(f"\nStarting game with {len(clients)} players! Assigning new roles...")
+    broadcast("\n--- HOST HAS STARTED THE GAME ---")
 
-        broadcast_maf(f"\nMafia, you have 30 seconds to discuss. Type 'VOTE: [name]' to kill.\nTarget options: {living_str}")
+    # 3. Create the game manager with everyone who joined
+    game_manager = player(clients, client_names) 
 
-        for p in game_manager.player_list:
-            if p.role == 'Doctor' and p.alive:
-                try:
-                    p.conn.send(f"\nDoctor, you have 30 seconds. Type 'VOTE: [name]' to heal someone.\nTarget options: {living_str}\n".encode('utf-8'))
-                except Exception:
-                    pass
-            elif p.role == 'Detective' and p.alive:
-                try:
-                    p.conn.send(f"\nDetective, you have 30 seconds. Type 'VOTE: [name]' to investigate someone.\nTarget options: {living_str}\n".encode('utf-8'))
-                except Exception:
-                    pass
-        
-        start_question_round(broadcast_villager)
-        
-        time.sleep(30)
+    for p in game_manager.player_list:
+        role_message = f"\nSERVER: Your secret role is {p.role}! Game starting in 10 seconds."
+        try:
+            p.conn.send(role_message.encode('utf-8'))
+        except:
+            pass
 
-        heal_target = list(doctor_votes.values())[0] if doctor_votes else None
-        detective_target = list(detective_votes.values())[0] if detective_votes else None
-        
-        heal_target = None
-        if doctor_votes:
-            heal_target = list(doctor_votes.values())[0]
+    time.sleep(10)
+    pm = Phase_manager(broadcast)
 
-        night_result = resolve_night_phase(game_manager.player_list, mafia_votes, heal_target, detective_target)
+    def game_loop():
+        while True:
+            # --- DAY PHASE ---
+            pm.set_day() 
+            day_votes.clear()
 
-        if night_result.get("detective_result") is not None:
+            living_players = [p.name for p in game_manager.player_list if p.alive]
+            living_str = ", ".join(living_players)
+
+            broadcast("\nDiscuss who the Mafia is. Type 'VOTE: [name]' to lynch. You have 60 seconds")
+            broadcast(f"\nAlive players {living_str}")
+            time.sleep(60)
+            
+            # Day Resolution
+            broadcast("\n--- LYNCHING RESOLUTION ---")
+            day_result = resolve_day_vote(game_manager.player_list, day_votes)
+            if day_result["eliminated"]:
+                broadcast(f"{day_result['eliminated']} was lynched by the town.")
+                notify_eliminated_player(day_result["eliminated"])
+            else:
+                broadcast("No majority reached. Nobody was lynched.")
+            
+            if day_result["win_status"]:
+                broadcast(f"\nGAME OVER: {day_result['win_status']}")
+                break
+
+            time.sleep(0.5)
+            # --- NIGHT PHASE ---
+            pm.set_night()
+            mafia_votes.clear()
+            doctor_votes.clear()
+            detective_votes.clear()
+            
+            living_players = [p.name for p in game_manager.player_list if p.alive]
+            living_str = ", ".join(living_players)
+
+            broadcast_maf(f"\nMafia, you have 30 seconds to discuss. Type 'VOTE: [name]' to kill.\nTarget options: {living_str}")
+
             for p in game_manager.player_list:
-                if p.role == 'Detective' and p.alive: # Only tell them if they survived the night!
-                    suspect = detective_target
-                    if night_result["detective_result"] is True:
-                        p.conn.send(f"\n*** [INVESTIGATION RESULT] Your suspect {suspect} IS Mafia! ***\n".encode('utf-8'))
-                    else:
-                        p.conn.send(f"\n*** [INVESTIGATION RESULT] Your suspect {suspect} is NOT Mafia. ***\n".encode('utf-8'))
-        
-        pm.set_day()
-        broadcast("\n--- MORNING NEWS ---")
-        if night_result["eliminated"]:
-             broadcast(f"\nTragedy! {night_result['eliminated']} was murdered in the night.")
-             notify_eliminated_player(night_result["eliminated"])
-        else:
-             broadcast("\nThe town slept peacefully. No one was killed.")
-             
-        if night_result["win_status"]:
-            broadcast(f"\nGAME OVER: {night_result['win_status']}")
-            break
+                if p.role == 'Doctor' and p.alive:
+                    try:
+                        p.conn.send(f"\nDoctor, you have 30 seconds. Type 'VOTE: [name]' to heal someone.\nTarget options: {living_str}\n".encode('utf-8'))
+                    except Exception:
+                        pass
+                elif p.role == 'Detective' and p.alive:
+                    try:
+                        p.conn.send(f"\nDetective, you have 30 seconds. Type 'VOTE: [name]' to investigate someone.\nTarget options: {living_str}\n".encode('utf-8'))
+                    except Exception:
+                        pass
+            
+            start_question_round(broadcast_villager)
+            time.sleep(30)
 
-game_thread = threading.Thread(target=game_loop, daemon=True)
-game_thread.start()
+            heal_target = list(doctor_votes.values())[0] if doctor_votes else None
+            detective_target = list(detective_votes.values())[0] if detective_votes else None
 
-# Keep main thread alive
-while True:
-    time.sleep(1)
+            night_result = resolve_night_phase(game_manager.player_list, mafia_votes, heal_target, detective_target)
+
+            if night_result.get("detective_result") is not None:
+                for p in game_manager.player_list:
+                    if p.role == 'Detective' and p.alive: 
+                        suspect = detective_target
+                        if night_result["detective_result"] is True:
+                            p.conn.send(f"\n*** [INVESTIGATION RESULT] Your suspect {suspect} IS Mafia! ***\n".encode('utf-8'))
+                        else:
+                            p.conn.send(f"\n*** [INVESTIGATION RESULT] Your suspect {suspect} is NOT Mafia. ***\n".encode('utf-8'))
+                            
+            broadcast("\nInforming Detective about investigation...")
+            time.sleep(10)
+            
+            pm.set_day()
+            broadcast("\n--- MORNING NEWS ---")
+            if night_result["eliminated"]:
+                 broadcast(f"\nTragedy! {night_result['eliminated']} was murdered in the night.")
+                 notify_eliminated_player(night_result["eliminated"])
+            else:
+                 broadcast("\nThe town slept peacefully. No one was killed.")
+                 
+            if night_result["win_status"]:
+                broadcast(f"\nGAME OVER: {night_result['win_status']}")
+                broadcast("Waiting for Host to restart the game...")
+                break
+
+    # Start the game loop for this specific match
+    game_thread = threading.Thread(target=game_loop, daemon=True)
+    game_thread.start()
+
+    # 4. Wait for the game to end
+    game_thread.join() 
+
+    print("\nGame Over! Press [ENTER] to return players to the lobby.")
+    input()
+    broadcast("\n--- RETURNED TO LOBBY. Waiting for host to start a new match ---")
+    broadcast("\n--- LOBBY CHAT ---")
