@@ -8,6 +8,13 @@ Terminal-Mafia-S is a multiplayer LAN game where players who are connected to a 
 
 The game features live chat, real-time voting, hidden night actions, and immersive ASCII art to bring the terminal experience to life.
 
+The real fun is in the confusion and deceptions that engage players in the game and cultivates a sense of thrill in them. 
+
+Every step you take, a predicament awaits!
+Amongst cruel killers, doctors, cunning detectives and suspicious eyes hovering around, survival is now a challenge!! 
+Will the dawn of victory belong to the brutal mafias or the optimistic village folk?
+
+
 ## Features
 
 - Multiplayer LAN Architecture: Built with Python socket and threading, supporting 4+ players over a local network.
@@ -49,16 +56,16 @@ All players must be on the same local network (LAN) or hotspot.
 Running the Game
 
 Start the Server (Host):
-One player must run the server script.
+One player must run the server executable.
 
-> python server.py
+> TerminalMafiaServer.exe
 
 The server will display a local IP address (e.g., 192.168.x.x). Share this IP with the other players.
 
 Connect to the Game (Clients):
-All players (including the host, in a separate terminal) must run the client script.
+All players (including the host, in a separate executable) must run the client executable.
 
-> python client.py
+> TerminalMafiaClient.exe
 
 Enter your username and the host's IP address when prompted.
 
