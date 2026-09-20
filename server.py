@@ -294,9 +294,9 @@ while True:
                 broadcast("No majority reached. Nobody was lynched.")
             
             if day_result["win_status"]:
-                if night_result["win_status"] == "VILLAGERS_WIN":
+                if day_result["win_status"] == "VILLAGERS_WIN":
                     broadcast(VILLAGER_WIN_ART)
-                elif night_result["win_status"] == "MAFIA_WIN":
+                elif day_result["win_status"] == "MAFIA_WIN":
                     broadcast(MAFIA_WIN_ART)
                 broadcast(f"\nGAME OVER: {day_result['win_status']}")
                 break
