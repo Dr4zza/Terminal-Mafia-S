@@ -74,14 +74,4 @@ Commands
 
 - Vote/Action: Type VOTE: [playername] during the designated time limits to lock in your lynch, kill, heal, or investigate target.
 
-- Future Roadmap & Brainstorming
-
-- Based on our brainstorming sessions, here are ideas planned for future updates:
-
-- Name Changer: A chaotic role that allows a player to alter their displayed username mid-game to cause confusion.
-
-- Side Changer: A neutral role that can dynamically switch allegiances between the Town and the Mafia depending on who is winning.
-
-- Double Sider (The Spy): A role capable of reading all chats, including the secret Mafia chat. However, to keep it balanced, they would only see the message content and not the usernames of the Mafia members.
-
 Built with Python, Sockets, and Deception for IAC Root 36.
