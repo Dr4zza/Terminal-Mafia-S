@@ -6,7 +6,7 @@ import phase_manager
 import time
 from villager_questions import start_question_round
 from game_logic import resolve_night_phase, resolve_day_vote, is_valid_vote_target
-from ascii_art import GRAVESTONE_ART, MAFIA_KILL_ART, DETECTIVE_ART, TITLE_ART, VILLAGER_WIN_ART, MAFIA_WIN_ART
+from ascii_art import GRAVESTONE_ART, MAFIA_KILL_ART, DETECTIVE_ART, TITLE_ART, VILLAGER_WIN_ART, MAFIA_WIN_ART, ROLE_DETECTIVE_ART, ROLE_DOCTOR_ART, ROLE_MAFIA_ART, ROLE_VILLAGER_ART
 
 def get_local_ip():
     try:
@@ -249,10 +249,20 @@ while True:
 
 
     for p in game_manager.player_list:
-        role_message = f"\nSERVER: Your secret role is {p.role}! Game starting in 10 seconds."
         try:
+            if p.role == "Villager":
+                p.conn.send(ROLE_VILLAGER_ART.encode('utf-8'))
+            elif p.role == "Mafia":
+                p.conn.send(ROLE_MAFIA_ART.encode('utf-8'))
+            elif p.role == "Doctor":
+                p.conn.send(ROLE_DOCTOR_ART.encode('utf-8'))
+            elif p.role == "Detective":
+                p.conn.send(ROLE_DETECTIVE_ART.encode('utf-8'))
+                
+            # Send the text confirmation
+            role_message = f"\nSERVER: Your secret role is {p.role}! Game starting in 10 seconds.\n"
             p.conn.send(role_message.encode('utf-8'))
-        except:
+        except Exception:
             pass
 
     time.sleep(10)
