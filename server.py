@@ -6,7 +6,7 @@ import phase_manager
 import time
 from villager_questions import start_question_round
 from game_logic import resolve_night_phase, resolve_day_vote, is_valid_vote_target
-from ascii_art import GRAVESTONE_ART, MAFIA_KILL_ART, DETECTIVE_ART, TITLE_ART
+from ascii_art import GRAVESTONE_ART, MAFIA_KILL_ART, DETECTIVE_ART, TITLE_ART, VILLAGER_WIN_ART, MAFIA_WIN_ART
 
 def get_local_ip():
     try:
@@ -358,6 +358,10 @@ while True:
             time.sleep(5)
 
             if night_result["win_status"]:
+                if night_result["win_status"] == "VILLAGERS_WIN":
+                    broadcast(VILLAGER_WIN_ART)
+                elif night_result["win_status"] == "MAFIA_WIN":
+                    broadcast(MAFIA_WIN_ART)
                 broadcast(f"\nGAME OVER: {night_result['win_status']}")
                 broadcast("Waiting for Host to restart the game...")
                 break
