@@ -170,6 +170,7 @@ def notify_eliminated_player(victim_name):
             try:
                 p.conn.send(death_msg.encode('utf-8'))
                 p.conn.send(GRAVESTONE_ART.encode('utf-8'))
+                p.conn.send("\nYou are now spectating the game. To leave, type 'quit'.".encode('utf-8'))
             except Exception:
                 pass
             break
