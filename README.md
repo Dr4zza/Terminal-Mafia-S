@@ -11,6 +11,13 @@ Terminal-Mafia-S is a multiplayer LAN game where players who are connected to a 
 
 The game features live chat, real-time voting, hidden night actions, and immersive ASCII art to bring the terminal experience to life.
 
+The real fun is in the confusion and deceptions that engage players in the game and cultivates a sense of thrill in them. 
+
+Every step you take, a predicament awaits!
+Amongst cruel killers, doctors, cunning detectives and suspicious eyes hovering around, survival is now a challenge!! 
+Will the dawn of victory belong to the brutal mafias or the optimistic village folk?
+
+
 ## Features
 
 Multiplayer LAN Architecture: Built with Python socket and threading, supporting 4+ players over a local network.
