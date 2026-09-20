@@ -278,7 +278,7 @@ while True:
             
             living_players = [p.name for p in game_manager.player_list if p.alive]
             living_str = ", ".join(living_players)
-
+            broadcast_maf(f"\n--- MAFIA MEET ---")
             broadcast_maf(f"\nMafia, you have 30 seconds to discuss. Type 'VOTE: [name]' to kill.\nTarget options: {living_str}")
 
             for p in game_manager.player_list:

@@ -1,31 +1,3 @@
-"""
-game_logic.py
---------------
-Owner: K (Kesh) -- Game Rules & Faction Logic
-
-Standalone, network-free functions implementing the Mafia game's rules:
-  1. Dynamic role assignment (Mafia count scales with player count)
-  2. Mafia target selection (majority-vote kill)
-  3. Doctor healing
-  4. Detective spotting
-  5. Day-phase lynch vote resolution
-  6. Basic vote-target validation (for graceful invalid-input handling)
-  7. Win condition checking
-
-Design contract with the rest of the team:
-  - This module never touches sockets, threads, or input()/print(). Z's
-    server.py owns all networking; N's client.py owns all display. That
-    way K and Z never edit the same lines, per the team split.
-  - Every function here takes plain data (player objects, dicts, strings)
-    and returns plain data. Z imports whatever's needed into server.py.
-  - "Player objects" below only need .name, .role, and .alive attributes,
-    matching SinglePlayer in main.py, so game_manager.player_list can be
-    passed straight in unmodified.
-
-Role strings used throughout (kept identical to main.py's literals):
-    "Mafia", "Doctor", "Detective", "Villager"
-"""
-
 import random
 
 # --------------------------------------------------------------------------
@@ -46,14 +18,6 @@ ALL_ROLES = {ROLE_MAFIA, ROLE_DOCTOR, ROLE_DETECTIVE, ROLE_VILLAGER}
 # 1. DYNAMIC ROLE ASSIGNMENT
 # ==========================================================================
 def build_role_pool(num_players, include_doctor=True, include_detective=True):
-    """
-    Builds a shuffled list of role strings, one per player.
-
-    Mafia count = num_players // 3 (minimum 1), per the team split ("total
-    player count divided by 3"). One Doctor and one Detective are set aside
-    next (if there's room and the flags are True), everyone else defaults
-    to Villager.
-    """
     if num_players < 4:
         raise ValueError("Need at least 4 players to assign roles")
 
@@ -80,7 +44,6 @@ def build_role_pool(num_players, include_doctor=True, include_detective=True):
 # Small shared helpers
 # ==========================================================================
 def find_player_by_name(player_list, name):
-    """Returns the SinglePlayer with this .name, or None if not found."""
     for p in player_list:
         if p.name == name:
             return p
@@ -88,16 +51,10 @@ def find_player_by_name(player_list, name):
 
 
 def alive_players(player_list):
-    """Returns only the still-alive players from player_list."""
     return [p for p in player_list if p.alive]
 
 
 def alive_count_by_role(player_list):
-    """
-    {"Mafia": 2, "Doctor": 1, ...} for everyone currently alive.
-    Handy for the "print all details (roles remaining)" step from the
-    ideas doc -- call this after each elimination to show a summary.
-    """
     counts = {}
     for p in alive_players(player_list):
         counts[p.role] = counts.get(p.role, 0) + 1
@@ -108,19 +65,6 @@ def alive_count_by_role(player_list):
 # 2. VOTE TALLYING (shared by Mafia night-kill and Day lynch vote)
 # ==========================================================================
 def tally_votes(votes):
-    """
-    votes: {voter_name: target_name}. Empty/None targets count as
-    abstentions and are ignored when picking a winner (but still count
-    toward the total when checking for a majority).
-
-    Returns (winner, counts):
-      winner = the target with a STRICT majority (more than half of all
-               votes cast), or None if there's no majority or the top
-               spot is tied.
-      counts = {target_name: vote_count}, useful for logging/debugging.
-
-    Matches the ideas doc: "Majority name - kill, if equal then dont kill".
-    """
     if not votes:
         return None, {}
 
@@ -151,25 +95,17 @@ def tally_votes(votes):
 # 3 & 4. MAFIA KILL + DOCTOR HEAL (Night phase)
 # ==========================================================================
 def resolve_mafia_kill(mafia_votes):
-    """mafia_votes: {mafia_player_name: target_name}. Returns the target
-    name if the Mafia reach majority agreement, else None (no kill)."""
     target, _ = tally_votes(mafia_votes)
     return target
 
 
 def apply_doctor_heal(kill_target_name, heal_target_name):
-    """True if the Doctor's heal saves the Mafia's chosen kill target."""
     if kill_target_name is None:
         return False
     return heal_target_name is not None and heal_target_name == kill_target_name
 
 
 def resolve_night_phase(player_list, mafia_votes, heal_target_name, detective_target_name=None):
-    """
-    One-call wrapper for the whole Night phase: kill -> heal -> optional
-    detective check -> win condition. Marks the victim's .alive = False
-    on player_list directly if someone dies.
-    """
     kill_target = resolve_mafia_kill(mafia_votes)
     saved = apply_doctor_heal(kill_target, heal_target_name)
     eliminated = None if saved else kill_target
@@ -195,9 +131,6 @@ def resolve_night_phase(player_list, mafia_votes, heal_target_name, detective_ta
 # 4b. DETECTIVE SPOTTING
 # ==========================================================================
 def detective_check(player_list, suspect_name):
-    """True if suspect is Mafia, False if not, None if suspect_name doesn't
-    match anyone alive-or-dead (so the caller can send back a friendly
-    error instead of crashing)."""
     suspect = find_player_by_name(player_list, suspect_name)
     if suspect is None:
         return None
@@ -208,17 +141,6 @@ def detective_check(player_list, suspect_name):
 # 5. DAY-PHASE LYNCH VOTE
 # ==========================================================================
 def resolve_day_vote(player_list, day_votes):
-    """
-    day_votes: {voter_name: target_name}. Reuses tally_votes so both the
-    Day lynch and the Mafia night-kill share one "no majority -> no
-    elimination" rule.
-
-    Integration note for Z (server.py):
-        handle_client() already parses "VOTE:" messages and broadcasts
-        them, but never tallies them. Collect each round's votes into a
-        dict and call this once the Day discussion timer ends:
-            result = resolve_day_vote(game_manager.player_list, day_votes)
-    """
     eliminated, _ = tally_votes(day_votes)
 
     if eliminated:
@@ -236,11 +158,6 @@ def resolve_day_vote(player_list, day_votes):
 # 6. VOTE VALIDATION (graceful handling of invalid input)
 # ==========================================================================
 def is_valid_vote_target(player_list, voter_name, target_name):
-    """
-    True only if target_name is a *living* player in player_list, other
-    than the voter. Z's server.py can call this before accepting a
-    VOTE:/kill/heal pick instead of tallying garbage input.
-    """
     if not target_name:
         return False
     target = find_player_by_name(player_list, target_name)
@@ -257,14 +174,6 @@ def is_valid_vote_target(player_list, voter_name, target_name):
 # 7. WIN CONDITIONS
 # ==========================================================================
 def check_win_condition(player_list):
-    """
-    Call this after every elimination (day lynch or night kill).
-
-    Returns "MAFIA_WIN" once Mafia are alive in numbers >= the rest of the
-    town (the standard Mafia end condition -- once it's a tie, Mafia can no
-    longer be out-voted), "VILLAGERS_WIN" once no Mafia are left alive, or
-    None if the game should continue.
-    """
     alive = alive_players(player_list)
     mafia_alive = [p for p in alive if p.role == ROLE_MAFIA]
     town_alive = [p for p in alive if p.role != ROLE_MAFIA]
