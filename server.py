@@ -6,6 +6,7 @@ import phase_manager
 import time
 from villager_questions import start_question_round
 from game_logic import resolve_night_phase, resolve_day_vote, is_valid_vote_target
+from ascii_art import GRAVESTONE_ART
 
 def get_local_ip():
     try:
@@ -143,7 +144,6 @@ def handle_client(conn, addr):
             
         broadcast(f"\n{playername} has left the game.", conn)
         
-        # --- NEW: Show the updated lobby if someone leaves before the game starts ---
         if not game_start:
             lobby_players = list(client_names.values())
             if lobby_players:
@@ -163,9 +163,13 @@ def notify_eliminated_player(victim_name):
     """Finds the eliminated player and sends them a direct 'You Died' message."""
     for p in game_manager.player_list:
         if p.name == victim_name:
-            death_msg = "\n*** YOU DIED! You are now a ghost. Ghosts cannot chat or vote. ***"
+            if p.role == "Mafia":
+                death_msg = "\n You were lynched and failed as the mafia, better luck next time."
+            else:
+                death_msg = "\n*** YOU DIED! You are now a ghost. Ghosts cannot chat or vote. ***"
             try:
                 p.conn.send(death_msg.encode('utf-8'))
+                p.conn.send(GRAVESTONE_ART.encode('utf-8'))
             except Exception:
                 pass
             break
@@ -212,7 +216,6 @@ while True:
     print(f"\nStarting game with {len(clients)} players! Assigning new roles...")
     broadcast("\n--- HOST HAS STARTED THE GAME ---")
 
-    # 3. Create the game manager with everyone who joined
     game_manager = player(clients, client_names) 
 
     for p in game_manager.player_list:

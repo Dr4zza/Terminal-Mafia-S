@@ -5,7 +5,7 @@ class Phase_manager:
     def set_phase(self, phase):
         self.phase = phase
         # and then tell the phase to every client
-        self.broadcast(f"Phase is {phase}")
+        self.broadcast(f"\nPhase is {phase}")
     # to make it day
 
     def set_day(self):

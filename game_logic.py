@@ -169,30 +169,6 @@ def resolve_night_phase(player_list, mafia_votes, heal_target_name, detective_ta
     One-call wrapper for the whole Night phase: kill -> heal -> optional
     detective check -> win condition. Marks the victim's .alive = False
     on player_list directly if someone dies.
-
-    Integration note for Z (server.py):
-        This is exactly the "# remaining stuff to be coded after keshav's
-        logic" placeholder in game_loop()/night_time(). Once you've
-        collected mafia_votes (via send_to_mafia prompts) and the doctor's
-        pick, call:
-            from game_logic import resolve_night_phase
-            result = resolve_night_phase(game_manager.player_list,
-                                          mafia_votes, doctor_heal_target,
-                                          detective_target)
-            if result["eliminated"]:
-                broadcast(f"{result['eliminated']} was killed during the night.")
-            else:
-                broadcast("No one died last night.")
-            if result["win_status"]:
-                broadcast(f"GAME OVER: {result['win_status']}")
-
-    Returns:
-        {
-          "eliminated": name or None,
-          "saved": bool,                 # doctor's heal worked
-          "detective_result": bool/None, # True=suspect is Mafia, None=no check made
-          "win_status": "MAFIA_WIN" / "VILLAGERS_WIN" / None,
-        }
     """
     kill_target = resolve_mafia_kill(mafia_votes)
     saved = apply_doctor_heal(kill_target, heal_target_name)
