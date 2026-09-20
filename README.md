@@ -56,16 +56,16 @@ All players must be on the same local network (LAN) or hotspot.
 Running the Game
 
 Start the Server (Host):
-One player must run the server script.
+One player must run the server executable.
 
-> python server.py
+> TerminalMafiaServer.exe
 
 The server will display a local IP address (e.g., 192.168.x.x). Share this IP with the other players.
 
 Connect to the Game (Clients):
-All players (including the host, in a separate terminal) must run the client script.
+All players (including the host, in a separate executable) must run the client script.
 
-> python client.py
+> TerminalMafiaClient.exe
 
 Enter your username and the host's IP address when prompted.
 
