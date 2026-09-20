@@ -70,11 +70,12 @@ def handle_client(conn, addr):
     playername = initial_data.split(":", 1)[0] if ":" in initial_data else str(addr[1])
     client_names[conn] = playername
     print(f"[JOIN] Player connected from {addr}")
-    broadcast(f"A new player joined from {playername}!", conn)
+    broadcast(f"A new player joined! Welcome {playername}!", conn)
 
     lobby_players = list(client_names.values())
     lobby_str = ", ".join(lobby_players)
     broadcast(f"Current Lobby ({len(lobby_players)}/4+): {lobby_str}\n")
+    broadcast("Waiting for a host to start the game...")
     try:
         while True:
             data = conn.recv(1024).decode('utf-8')
@@ -305,14 +306,20 @@ while True:
                 for p in game_manager.player_list:
                     if p.role == 'Detective' and p.alive: 
                         suspect = detective_target
-                        if night_result["detective_result"] is True:
-                            p.conn.send(DETECTIVE_ART.encode('utf-8'))
-                            p.conn.send(f"\n*** [INVESTIGATION RESULT] Your suspect {suspect} IS Mafia! ***\n".encode('utf-8'))
-                        else:
-                            p.conn.send(DETECTIVE_ART.encode('utf-8'))
-                            p.conn.send(f"\n*** [INVESTIGATION RESULT] Your suspect {suspect} is NOT Mafia. ***\n".encode('utf-8'))
+                        try:
+                            if night_result["detective_result"] is True:
+                                p.conn.send(DETECTIVE_ART.encode('utf-8'))
+                                p.conn.send(f"\n*** [INVESTIGATION RESULT] Your suspect {suspect} IS Mafia! ***\n".encode('utf-8'))
+                            else:
+                                p.conn.send(DETECTIVE_ART.encode('utf-8'))
+                                p.conn.send(f"\n*** [INVESTIGATION RESULT] Your suspect {suspect} is NOT Mafia. ***\n".encode('utf-8'))
+                        except Exception:
+                            pass
                     elif p.role != "Detective":
-                        p.conn.send("\nInforming Detective about investigation...".encode('utf-8'))
+                        try:
+                            p.conn.send("\nInforming Detective about investigation...".encode('utf-8'))
+                        except Exception:
+                            pass
             time.sleep(10)
             
             pm.set_day()
@@ -320,8 +327,11 @@ while True:
             if night_result["eliminated"]:
                  for p in game_manager.player_list:
                      if p.alive:
-                        p.conn.send(f"\nTragedy! {night_result['eliminated']} was murdered in the night.\n".encode('utf-8'))
-                        p.conn.send(MAFIA_KILL_ART.encode('utf-8'))
+                        try:
+                            p.conn.send(f"\nTragedy! {night_result['eliminated']} was murdered in the night.\n".encode('utf-8'))
+                            p.conn.send(MAFIA_KILL_ART.encode('utf-8'))
+                        except Exception:
+                            pass
                  notify_eliminated_player(night_result["eliminated"])
             else:
                  broadcast("\nThe town slept peacefully. No one was killed.")
