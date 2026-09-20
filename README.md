@@ -56,7 +56,7 @@ All players must be on the same local network (LAN) or hotspot.
 Running the Game
 
 Start the Server (Host):
-One player must run the server executable.
+One player must run the server executable. When opening for the first time, a pop-up will appear asking for access to public networks, press "OK".
 
 > TerminalMafiaServer.exe
 
